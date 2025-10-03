@@ -5,6 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mergington High School Activities</title>
     <link rel="stylesheet" href="styles.css" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f0f2f5;
+      }
+      h1 {
+        color: #1a237e;
+        text-align: center;
+      }
+      .activity-card {
+        border: 1px solid #ddd;
+        padding: 20px;
+        margin: 15px;
+        border-radius: 8px;
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .activity-card h2 {
+        color: #303f9f;
+        margin-top: 0;
+      }
+      .participants-section {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+      }
+      .participants-section h3 {
+        color: #666;
+        font-size: 1.1em;
+        margin-bottom: 10px;
+      }
+      .participants-list {
+        list-style-type: none;
+        padding-left: 0;
+      }
+      .participants-list li {
+        padding: 5px 0;
+        color: #555;
+      }
+      .spots-remaining {
+        color: #666;
+        font-style: italic;
+        margin-top: 10px;
+      }
+    </style>
   </head>
   <body>
     <header>
@@ -26,7 +74,12 @@
         <form id="signup-form">
           <div class="form-group">
             <label for="email">Student Email:</label>
-            <input type="email" id="email" required placeholder="your-email@mergington.edu" />
+            <input
+              type="email"
+              id="email"
+              required
+              placeholder="your-email@mergington.edu"
+            />
           </div>
           <div class="form-group">
             <label for="activity">Select Activity:</label>
@@ -46,5 +99,43 @@
     </footer>
 
     <script src="app.js"></script>
+  </body>
+</html>
+        try {
+          const response = await fetch("/activities");
+          const activities = await response.json();
+
+          const activitiesList = document.getElementById("activities-list");
+          activitiesList.innerHTML = ''; // Clear loading message
+
+          for (const [name, activity] of Object.entries(activities)) {
+            const card = document.createElement("div");
+            card.className = "activity-card";
+            card.innerHTML = `
+              <h2>${name}</h2>
+              <p>${activity.description}</p>
+              <p><strong>Schedule:</strong> ${activity.schedule}</p>
+              <div class="participants-section">
+                <h3>Current Participants</h3>
+                ${activity.participants.length > 0 
+                  ? `<ul class="participants-list">
+                      ${activity.participants.map(p => `<li>${p}</li>`).join('')}
+                     </ul>`
+                  : '<p>No participants yet</p>'
+                }
+                <div class="spots-remaining">
+                  ${activity.max_participants - activity.participants.length} spots remaining
+                  (${activity.participants.length}/${activity.max_participants} filled)
+                </div>
+              </div>`;
+            activitiesList.appendChild(card);
+          }
+        } catch (error) {
+          console.error('Error loading activities:', error);
+        }
+      }
+
+      loadActivities();
+    </script>
   </body>
 </html>
