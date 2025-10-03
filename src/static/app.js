@@ -24,9 +24,19 @@ document.addEventListener("DOMContentLoaded", () => {
           <h4>${name}</h4>
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
-          <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
-        `;
-
+          <div class="participants-section">
+            <h3>Current Participants</h3>
+            ${details.participants.length > 0 
+                ? `<ul class="participants-list">
+                    ${details.participants.map(p => `<li>${p}</li>`).join('')}
+                   </ul>`
+                : '<p>No participants yet</p>'
+            }
+            <div class="spots-remaining">
+              ${spotsLeft} spots remaining
+              (${details.participants.length}/${details.max_participants} filled)
+            </div>
+          </div>`;
         activitiesList.appendChild(activityCard);
 
         // Add option to select dropdown
@@ -50,35 +60,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const response = await fetch(
-        `/activities/${encodeURIComponent(activity)}/signup?email=${encodeURIComponent(email)}`,
+        `/activities/${encodeURIComponent(activity)}/signup`,
         {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: email }),
         }
       );
 
-      const result = await response.json();
-
       if (response.ok) {
-        messageDiv.textContent = result.message;
-        messageDiv.className = "success";
-        signupForm.reset();
+        messageDiv.textContent = `Successfully signed up for ${activity}!`;
+        messageDiv.className = "message success";
+        // Reload activities to show updated participants
+        fetchActivities();
+        // Reset form
+        event.target.reset();
       } else {
-        messageDiv.textContent = result.detail || "An error occurred";
-        messageDiv.className = "error";
+        const error = await response.json();
+        messageDiv.textContent = error.detail || "Failed to sign up for activity";
+        messageDiv.className = "message error";
       }
-
-      messageDiv.classList.remove("hidden");
-
-      // Hide message after 5 seconds
-      setTimeout(() => {
-        messageDiv.classList.add("hidden");
-      }, 5000);
     } catch (error) {
-      messageDiv.textContent = "Failed to sign up. Please try again.";
-      messageDiv.className = "error";
-      messageDiv.classList.remove("hidden");
-      console.error("Error signing up:", error);
+      messageDiv.textContent = "An error occurred while signing up";
+      messageDiv.className = "message error";
+      console.error("Error:", error);
     }
+
+    messageDiv.classList.remove("hidden");
+    // Hide message after 5 seconds
+    setTimeout(() => {
+      messageDiv.classList.add("hidden");
+    }, 5000);
   });
 
   // Initialize app
